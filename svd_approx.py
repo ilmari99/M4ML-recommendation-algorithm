@@ -2,10 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def svd_approx(A : np.ndarray, k : int) -> np.ndarray:
+def svd_approx(A : np.ndarray, k : int, verbose : int = 0) -> np.ndarray:
     """ Creates an approximate matrix of rank k from the input matrix A (not necessarily square)
     """
     U, S, V = np.linalg.svd(A)
+    if verbose > 0:
+        print(f"Singular values {S[:k]}")
     # Create a diagonal matrix with the first k singular values
     S = np.diag(S[:k])
     # Create a matrix with the first k columns of U
@@ -13,7 +15,13 @@ def svd_approx(A : np.ndarray, k : int) -> np.ndarray:
     # Create a matrix with the first k rows of V
     V = V[:k, :]
     # Calculate the approximate matrix
+    if verbose > 0:
+        print(f"U shape: {U.shape}")
+        print(f"S shape: {S.shape}")
+        print(f"V shape: {V.shape}")
     A_appr = U @ (S @ V)
+    if verbose > 1:
+        print(f"Rank {k} matrix: \n{A_appr.round(2)}")
     return A_appr
 
 
@@ -44,13 +52,20 @@ if __name__ == "__main__":
                   [3,0,0,4,0,5,2,0,0,1],
                   [2,2,0,3,0,4,0,0,2,3]]
                   )
+    A = np.array([[5,0,2,-1],
+                  [2,-1,5,0],
+                  [1,-2,0,-5],
+                  [0,5,-1,2]])
     errs = []
     ranks = list(range(1,min(A.shape)+1))
+    
     for k in ranks:
-        A_approx = svd_approx(A, k)
+        A_approx = svd_approx(A, k,verbose=2)
         err = svd_approx_error(A, A_approx)
         print(f"Rank {k} {A_approx.shape} error: {err}")
         errs.append(err)
+        print("\n")
+    
     fig, ax = plt.subplots()
     ax.plot(ranks, [err["frob"] for err in errs], label="Frobenius")
     ax.set_xlabel("Rank")
@@ -60,11 +75,11 @@ if __name__ == "__main__":
     ax.set_title("SVD Approximation Error (Frobenius norm)")
 
     fig1, ax1 = plt.subplots()
-    ax1.plot(ranks, [err["trace"] for err in errs], label="trace")
+    ax1.plot(ranks, [err["trace"] for err in errs], label="|Trace|")
     ax1.set_xlabel("Rank")
     ax1.set_ylabel("Error")
     ax1.legend()
     ax1.grid(True)
-    ax1.set_title("SVD Approximation Error (Trace)")
+    ax1.set_title("SVD Approximation Error (|Trace|)")
 
     plt.show()
